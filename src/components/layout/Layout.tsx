@@ -1,4 +1,4 @@
-export const Layout = ({ children }) => {
+export const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="flex w-full flex-1 flex-col overflow-hidden">
       <header>Header</header>
