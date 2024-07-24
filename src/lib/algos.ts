@@ -44,4 +44,32 @@ const bubbleSort = async (arr: number[]) => {
   return arr;
 };
 
-export { bubbleSort };
+const selectionSort = async (arr: number[]) => {
+  for (let i = 0; i < arr.length; i++) {
+    let lowest = i;
+    for (let j = i + 1; j < arr.length; j++) {
+      if (arr[lowest] > arr[j]) {
+        lowest = j;
+      }
+    }
+    if (i !== lowest) {
+      // swap the elements
+      [arr[i], arr[lowest]] = [arr[lowest], arr[i]];
+
+      const current = `#rect${arr[i]}`;
+      const right = `#rect${arr[lowest]}`;
+
+      const currentX = d3.select(current).attr("x");
+      const rightX = d3.select(right).attr("x");
+
+      await Promise.all([
+        d3.select(current).transition().duration(1000).attr("x", rightX).end(),
+        d3.select(right).transition().duration(1000).attr("x", currentX).end(),
+      ]);
+    }
+  }
+
+  return arr;
+};
+
+export { bubbleSort, selectionSort };
