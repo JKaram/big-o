@@ -6,7 +6,7 @@ import { selectionSort } from "./lib/algos";
 function App() {
   return (
     <Layout>
-      <BarChart width={450} height={300} algoCallback={selectionSort} />
+      {/* <BarChart width={450} height={300} algoCallback={selectionSort} /> */}
       <Nodes />
     </Layout>
   );
