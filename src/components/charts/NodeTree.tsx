@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface NodeData {
   id: string;
@@ -17,6 +17,7 @@ const nodePairs: NodeData[] = [
   { id: "8", value: 8, parent: "7" },
   { id: "9", value: 9, parent: "1" },
   { id: "10", value: 9, parent: "1" },
+  { id: "11", value: 10, parent: "4" },
 ];
 
 const root: d3.HierarchyNode<NodeData> = d3
@@ -28,13 +29,14 @@ const VIEW_BOX_WIDTH = 100;
 const VIEW_BOX_HEIGHT = 100;
 
 const layoutWidth = 1000;
-const layoutHeight = 400;
+const layoutHeight = 500;
 
 const viewBox = `0 0 ${VIEW_BOX_WIDTH} ${VIEW_BOX_HEIGHT}`;
 
 export const NodeTree = () => {
   const svgRef = useRef<SVGSVGElement>(null);
   const treeLayout = d3.tree<NodeData>().size([layoutWidth, layoutHeight]);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     const svg = d3.select(svgRef.current);
@@ -70,6 +72,7 @@ export const NodeTree = () => {
       .selectAll("line")
       .data(links)
       .join("line")
+      .attr("id", (d) => `line-${d.source.data.id}-${d.target.data.id}`)
       .attr("x1", (d) => d.source.x)
       .attr("y1", (d) => d.source.y)
       .attr("x2", (d) => d.target.x)
@@ -81,6 +84,7 @@ export const NodeTree = () => {
       .selectAll("circle")
       .data(nodes)
       .join("circle")
+      .attr("id", (d) => `node-${d.data.id}`)
       .attr("cx", (d) => d.x)
       .attr("cy", (d) => d.y)
       .attr("r", 3)
@@ -90,13 +94,57 @@ export const NodeTree = () => {
       .selectAll("text")
       .data(nodes)
       .join("text")
+      .attr("id", (d) => `text-${d.data.id}`)
       .attr("x", (d) => d.x)
-      .attr("y", (d) => d.y - 10)
+      .attr("y", (d) => d.y + 1)
       .attr("text-anchor", "middle")
       .attr("font-size", 3)
-      .attr("fill", "white")
+      .attr("fill", "red")
       .text((d) => d.data.value);
+
+    setIsReady(true);
   }, [treeLayout]);
+
+  const depthFirstSearch = async (
+    root: d3.HierarchyNode<NodeData>,
+    value: number,
+  ) => {
+    const stack = [];
+
+    stack.push(root);
+
+    while (stack.length !== 0) {
+      const node: d3.HierarchyNode<NodeData> | undefined = stack.pop();
+
+      const current = `#node-${node?.id}`;
+
+      if (node?.data?.value === value) {
+        d3.select(current).attr("fill", "gold");
+
+        return node;
+      }
+
+      await d3
+        .select(current)
+        .attr("fill", "purple")
+        .transition()
+        .duration(500)
+        .end();
+
+      if (node?.children) {
+        for (let i: number = node?.children.length || 0 - 1; i >= 0; i--) {
+          stack.push(node?.children[i]);
+        }
+      }
+    }
+
+    return null;
+  };
+
+  useEffect(() => {
+    if (!isReady) return;
+    depthFirstSearch(root, 9);
+  }, [isReady]);
 
   return (
     <>
